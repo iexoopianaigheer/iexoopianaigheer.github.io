@@ -21,7 +21,7 @@ var map = new ol.Map({
     ],
     view: new ol.View({
         center: ol.proj.transform([25.13382, 60.21938], 'EPSG:4326', 'EPSG:3857'),
-        zoom: 14,
+        zoom: 12,
     })
 ,});
 
@@ -39,22 +39,26 @@ function readPolylineFromPoints(text) {
 }
 
 function onFeatureSelect(feature, routeData) {
-    var variant = 0;
+    console.debug(feature.getProperties());
+    console.debug(routeData);
+
+    var variant = routeData.variants[0];
     var direction = feature.get('direction');
-    for (i in routeData.directions) {
-        if (direction == routeData.directions[i]) {
-            variant = i;
-            break;
+    if (direction) {
+        for (i in routeData.directions) {
+            if (direction == routeData.directions[i]) {
+                variant = routeData.variants[i];
+                break;
+            }
         }
     }
 
-    var route = routeData.variants[variant];
-    var line = readPolylineFromPoints(route.geometry.points);
+    var line = readPolylineFromPoints(variant.geometry.points);
     line.getGeometry().transform('EPSG:4326', 'EPSG:3857');
     line.setStyle(styles.selectedRoute(feature.get('type')));
 
     var coords = new Array();
-    route.stops.forEach(function (stop) {
+    variant.stops.forEach(function (stop) {
         coords.push([stop.lon, stop.lat]);
     });
 
@@ -84,10 +88,11 @@ map.on('singleclick', function(ev) {
         req.setRequestHeader('Accept', 'application/json');
         req.responseType = 'json';
         req.onload = function(ev) {
-            if (req.response)
+            if (req.response && req.response.routeData[0]) {
                 onFeatureSelect(feature, req.response.routeData[0]);
-            else
+            } else {
                 console.debug(req);
+            }
         };
         req.send();
     }
@@ -133,12 +138,16 @@ function featureFromActivity(journey) {
         vehicleXfeature[vehicleRef] = feature;
         ret = feature
     }
+
+    // TODO: update only when necessary
+    // TODO: remove stale entries, ie. gc
     feature.set('bearing', journey.Bearing);
     feature.set('delay', journey.Delay);
     feature.set('direction', journey.DirectionRef.value);
     feature.set('line', jore[2]);
     feature.set('lineRef', lineRef);
     feature.set('type', jore[0]);
+    feature.set('journey', journey);
     feature.setGeometry(new ol.geom.Point(ol.proj.transform(
         [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
         'EPSG:4326', 'EPSG:3857')));
