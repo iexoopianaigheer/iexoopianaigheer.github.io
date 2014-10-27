@@ -1,52 +1,7 @@
-var colors = {
-    FERRY:  '#11d',
-    SUBWAY: '#d60',
-    RAIL:   '#00985f',
-    TRAM:   '#3a2',
-    BUS:    '#007ac9',
-};
-var imageStyle = new ol.style.Circle({
-    radius: 12,
-    fill: new ol.style.Fill({
-        color: '#0083ff',
-    }),
-    stroke: new ol.style.Stroke({
-        color: '#f0f0f0',
-        width: 2,
-    }),
-});
-var strokeStyle = new ol.style.Stroke({
-        color: '#f0f0f0',
-        width: 2,
-});
-
-var textFill = new ol.style.Fill({
-    color: '#000000',
-});
-var textStroke = new ol.style.Stroke({
-    color: '#ffffff',
-    width: 2,
-});
-
 var vehicleSource = new ol.source.Vector();
 var vehicleLayer = new ol.layer.Vector({
     source: vehicleSource,
-    style: function(feature, resolution) {
-        return [new ol.style.Style({
-            image: new ol.style.Circle({
-                radius: 12,
-                fill: new ol.style.Fill({
-                    color: colors[feature.get('type')],
-                }),
-                stroke: strokeStyle,
-            }),
-            text: new ol.style.Text({
-                text: feature.get('line'),
-                fill: textFill,
-                stroke: textStroke,
-            }),
-        })];
-    }
+    style: styles.vehicleStyleFunction,
 });
 
 var selectionSource = new ol.source.Vector();
@@ -96,12 +51,7 @@ function onFeatureSelect(feature, routeData) {
     var route = routeData.variants[variant];
     var line = readPolylineFromPoints(route.geometry.points);
     line.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-    line.setStyle([new ol.style.Style({
-        stroke: new ol.style.Stroke({
-            color: colors[feature.get('type')],
-            width: 4,
-        }),
-    })]);
+    line.setStyle(styles.selectedRoute(feature.get('type')));
 
     var coords = new Array();
     route.stops.forEach(function (stop) {
@@ -110,14 +60,7 @@ function onFeatureSelect(feature, routeData) {
 
     var points = new ol.Feature({ geometry: new ol.geom.MultiPoint(coords) });
     points.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-    points.setStyle([new ol.style.Style({
-        image: new ol.style.Circle({
-            radius: 4,
-            fill: new ol.style.Fill({
-                color: 'black',
-            }),
-        }),
-    })]);
+    points.setStyle(styles.selectedStops(feature.get('type')));
 
     selectionSource.addFeatures([line, points])
 }
