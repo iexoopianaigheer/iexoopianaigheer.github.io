@@ -1,11 +1,13 @@
 var styles = {
 
-    colors: {
-        FERRY:  '#11d',
-        SUBWAY: '#d60',
-        RAIL:   '#00985f',
-        TRAM:   '#3a2',
-        BUS:    '#007ac9',
+    colors: function (type, opacity) {
+        return 'rgba(' + {
+            FERRY:  '16, 16, 208',
+            SUBWAY: '208, 96, 0',
+            RAIL:   '0, 152, 95',
+            TRAM:   '48, 160, 32',
+            BUS:    '0, 122, 201',
+        }[type] + ', ' + opacity + ')';
     },
 
     vehicleMarkerStrokeStyle: new ol.style.Stroke({
@@ -27,9 +29,9 @@ var styles = {
             image: new ol.style.Circle({
                 radius: 12,
                 fill: new ol.style.Fill({
-                    color: styles.colors[feature.get('type')],
+                    color: styles.colors(feature.get('type'), 0.6),
                 }),
-                stroke: styles.strokeStyle,
+                stroke: styles.vehicleMarkerStrokeStyle,
             }),
             text: new ol.style.Text({
                 text: feature.get('line'),
@@ -42,7 +44,7 @@ var styles = {
     selectedRoute: function (type) {
         return [new ol.style.Style({
             stroke: new ol.style.Stroke({
-                color: styles.colors[type],
+                color: styles.colors(type, 1),
                 width: 4,
             }),
         })]
