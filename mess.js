@@ -97,9 +97,9 @@ function interpretJORE(routeId) {
     } else if (routeId.match(/^300/)) {
         return ["RAIL", 2, routeId.substring(4,5)];
     } else if (routeId.match(/^10(0|10)/)) {
-        return ["TRAM", 0, routeId.substring(2,4)];
+        return ["TRAM", 0, routeId.replace(/^..0*/, '')];
     } else if (routeId.match(/^(1|2|4).../)) {
-        return ["BUS", 3, routeId.substring(1)];
+        return ["BUS", 3, routeId.replace(/^.0*/, '')];
     }
 
     // unknown, assume bus
