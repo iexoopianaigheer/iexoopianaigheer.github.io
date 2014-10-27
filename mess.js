@@ -108,8 +108,18 @@ function interpretJORE(routeId) {
 
 function featureFromActivity(journey) {
     var ret = null;
+
     var vehicleRef = journey.VehicleRef.value;
+    var lineRef = journey.LineRef.value;
+
+    if (lineRef == '0') {
+        vehicleXfeature[vehicleRef] = undefined;
+        return undefined;
+    }
+
+    var jore = interpretJORE(lineRef);
     var feature = vehicleXfeature[vehicleRef];
+
     if (!feature) {
         feature = new ol.Feature({
             vehicleRef: vehicleRef,
@@ -117,8 +127,6 @@ function featureFromActivity(journey) {
         vehicleXfeature[vehicleRef] = feature;
         ret = feature
     }
-    var lineRef = journey.LineRef.value;
-    var jore = interpretJORE(lineRef);
     feature.set('bearing', journey.Bearing);
     feature.set('delay', journey.Delay);
     feature.set('direction', journey.DirectionRef.value);
