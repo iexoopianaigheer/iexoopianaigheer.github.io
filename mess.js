@@ -81,8 +81,14 @@ map.on('singleclick', function(ev) {
         var url = 'http://dev.hsl.fi/opentripplanner-api-webapp/ws/transit/routeData?id=' + lineRef;
         var req = new XMLHttpRequest();
         req.open('GET', url, true);
+        req.setRequestHeader('Accept', 'application/json');
         req.responseType = 'json';
-        req.onload = function(ev) { onFeatureSelect(feature, req.response.routeData[0]) };
+        req.onload = function(ev) {
+            if (req.response)
+                onFeatureSelect(feature, req.response.routeData[0]);
+            else
+                console.debug(req);
+        };
         req.send();
     }
 });
