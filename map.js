@@ -2,15 +2,6 @@ var map = {
 
     layers: {},
 
-    map: new ol.Map({
-        target: 'map',
-        view: new ol.View({
-            center: ol.proj.transform(
-                [25.13382, 60.21938], 'EPSG:4326', 'EPSG:3857'),
-            zoom: 12,
-        }),
-    }),
-
     sources: {
         base: new ol.source.XYZ({
             urls: [
@@ -21,6 +12,16 @@ var map = {
         vehicles: new ol.source.Vector(),
         selection: new ol.source.Vector(),
     },
+
+    map: new ol.Map({
+        target: 'map',
+    }),
+
+    view: new ol.View({
+        center: ol.proj.transform(
+            [25.13382, 60.21938], 'EPSG:4326', 'EPSG:3857'),
+        zoom: 12,
+    }),
 
 };
 
@@ -41,3 +42,4 @@ map.layers['selection'] = new ol.layer.Vector({
 ['base', 'selection', 'vehicles'].forEach(function(key) {
     map.map.addLayer(map.layers[key]);
 });
+map.map.setView(map.view);

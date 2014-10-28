@@ -19,7 +19,16 @@ var styles = {
         color: '#000000',
     }),
 
-    textStroke: new ol.style.Stroke({
+    fillWhite: new ol.style.Fill({
+        color: '#ffffff',
+    }),
+
+    strokeBlack: new ol.style.Stroke({
+        color: '#000000',
+        width: 2,
+    }),
+
+    strokeWhite: new ol.style.Stroke({
         color: '#ffffff',
         width: 2,
     }),
@@ -27,7 +36,7 @@ var styles = {
     vehicleStyleFunction: function(feature, resolution) {
         return [new ol.style.Style({
             image: new ol.style.Circle({
-                radius: 12,
+                radius: 10,
                 fill: new ol.style.Fill({
                     color: styles.colors(feature.get('type'), 0.6),
                 }),
@@ -36,7 +45,7 @@ var styles = {
             text: new ol.style.Text({
                 text: feature.get('line'),
                 fill: styles.fillBlack,
-                stroke: styles.textStroke,
+                stroke: styles.strokeWhite,
             }),
         })];
     },

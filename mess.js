@@ -1,17 +1,19 @@
 function onFeatureSelect(feature, routeData) {
-    console.debug(feature.getProperties());
     console.debug(routeData);
 
-    var variant = routeData.variants[0];
-    var direction = feature.get('direction');
-    if (direction) {
-        for (i in routeData.directions) {
-            if (direction == routeData.directions[i]) {
-                variant = routeData.variants[i];
-                break;
-            }
-        }
-    }
+    //var variant = routeData.variants[0];
+    //var direction = feature.get('direction');
+    //if (direction) {
+    //    for (i in routeData.directions) {
+    //        if (direction == routeData.directions[i]) {
+    //            variant = routeData.variants[i];
+    //            break;
+    //        }
+    //    }
+    //}
+
+    var variant = routeData.variants[
+        feature.get('direction') ? parseInt(feature.get('direction'), 10) : 0];
 
     var routeGeom = data.readGeometryFromEncodedPoints(variant.geometry.points);
     routeGeom.transform('EPSG:4326', 'EPSG:3857');
@@ -27,13 +29,15 @@ function onFeatureSelect(feature, routeData) {
     points.getGeometry().transform('EPSG:4326', 'EPSG:3857');
     points.setStyle(styles.selectedStops(feature.get('type')));
 
+    map.sources.selection.clear();
     map.sources.selection.addFeatures([line, points]);
+    map.layers.selection.setVisible(true);
+    //map.layers.vehicles.setVisible(false);
 
+    //map.view.fitGeometry(routeGeom, map.map.getSize());
 }
 
 map.map.on('singleclick', function(ev) {
-    map.sources.selection.clear();
-
     var feature = map.sources.vehicles
         .getClosestFeatureToCoordinate(ev.coordinate);
     var featureCoordinate = feature.getGeometry().getCoordinates();
@@ -47,6 +51,11 @@ map.map.on('singleclick', function(ev) {
                 console.debug(req);
             }
         });
+        console.debug(feature.getProperties());
+    } else {
+        // deselect
+        map.layers.selection.setVisible(false);
+        map.layers.vehicles.setVisible(true);
     }
 });
 
@@ -66,12 +75,21 @@ function featureFromActivity(journey) {
     var jore = data.interpretJORE(lineRef);
     var feature = vehicleXfeature[vehicleRef];
 
+    var geom = new ol.geom.Point(ol.proj.transform(
+        [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
+        'EPSG:4326', 'EPSG:3857'));
     if (!feature) {
         feature = new ol.Feature({
+            geometry: geom,
             vehicleRef: vehicleRef,
+            type: jore[0],
         });
         vehicleXfeature[vehicleRef] = feature;
         ret = feature
+    } else {
+        if (!util.arrayEquals(feature.getGeometry().getCoordinates(), geom.getCoordinates())) {
+            feature.setGeometry(geom);
+        }
     }
 
     // TODO: update only when necessary
@@ -81,11 +99,10 @@ function featureFromActivity(journey) {
     feature.set('direction', journey.DirectionRef.value);
     feature.set('line', jore[2]);
     feature.set('lineRef', lineRef);
-    feature.set('type', jore[0]);
-    feature.set('journey', journey);
-    feature.setGeometry(new ol.geom.Point(ol.proj.transform(
-        [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
-        'EPSG:4326', 'EPSG:3857')));
+    //feature.set('journey', JSON.stringify(journey));
+    //feature.setGeometry(new ol.geom.Point(ol.proj.transform(
+    //    [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
+    //    'EPSG:4326', 'EPSG:3857')));
 
     return ret;
 }
