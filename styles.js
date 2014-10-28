@@ -68,4 +68,26 @@ var styles = {
         })]
     },
 
+    stop: [new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 3,
+            fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
+            stroke: new ol.style.Stroke({ color: '#000', width: 1.4 }),
+        }),
+    })],
+
+    stopFunction: function(feature, resolution) {
+        if (resolution < 12) {
+            //return styles.stop;
+            return [new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 3 * (1 + (11 - resolution) / 4),
+                    fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
+                    stroke: new ol.style.Stroke({ color: '#000', width: 1.4 }),
+                }),
+            })];
+        }
+        return null;
+    },
+
 }

@@ -9,6 +9,7 @@ var map = {
                 'http://b.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png',
             ],
         }),
+        stops: new ol.source.Vector(),
         vehicles: new ol.source.Vector(),
         selection: new ol.source.Vector(),
     },
@@ -37,9 +38,13 @@ map.layers['selection'] = new ol.layer.Vector({
     source: map.sources.selection,
     style: null,
 });
+map.layers['stops'] = new ol.layer.Vector({
+    source: map.sources.stops,
+    style: styles.stop,
+    visible: false,
+});
 
-// add layers to map
-['base', 'selection', 'vehicles'].forEach(function(key) {
+['base', 'stops', 'selection', 'vehicles'].forEach(function(key) {
     map.map.addLayer(map.layers[key]);
 });
 map.map.setView(map.view);
