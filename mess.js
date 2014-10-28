@@ -28,12 +28,7 @@ function onFeatureSelect(feature, routeData) {
     points.setStyle(styles.selectedStops(feature.get('type')));
 
     map.sources.selection.addFeatures([line, points]);
-}
 
-function distance(a, b) {
-    var dx = a[0] - b[0];
-    var dy = a[1] - b[1];
-    return Math.sqrt(dx*dx + dy*dy);
 }
 
 map.map.on('singleclick', function(ev) {
@@ -42,21 +37,16 @@ map.map.on('singleclick', function(ev) {
     var feature = map.sources.vehicles
         .getClosestFeatureToCoordinate(ev.coordinate);
     var featureCoordinate = feature.getGeometry().getCoordinates();
-    if (distance(map.map.getPixelFromCoordinate(featureCoordinate), ev.pixel) < 15) {
+    if (util.distance(map.map.getPixelFromCoordinate(featureCoordinate), ev.pixel) < 15) {
         var lineRef = feature.get('lineRef');
         var url = 'http://dev.hsl.fi/opentripplanner-api-webapp/ws/transit/routeData?id=' + lineRef;
-        var req = new XMLHttpRequest();
-        req.open('GET', url, true);
-        req.setRequestHeader('Accept', 'application/json');
-        req.responseType = 'json';
-        req.onload = function(ev) {
+        util.fetchJSON(url, function(req) {
             if (req.response && req.response.routeData[0]) {
                 onFeatureSelect(feature, req.response.routeData[0]);
             } else {
                 console.debug(req);
             }
-        };
-        req.send();
+        });
     }
 });
 
@@ -116,11 +106,7 @@ function handleSiriData(data) {
 
 function updateVehiclesFromSiri() {
     var url = 'http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL';
-    var req = new XMLHttpRequest();
-    req.open('GET', url, true);
-    req.responseType = 'json';
-    req.onload = function(ev) { handleSiriData(req.response) };
-    req.send();
+    util.fetchJSON(url, function(req) { handleSiriData(req.response) });
 }
 
 updateVehiclesFromSiri();
