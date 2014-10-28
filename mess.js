@@ -1,30 +1,3 @@
-var vehicleSource = new ol.source.Vector();
-var vehicleLayer = new ol.layer.Vector({
-    source: vehicleSource,
-    style: styles.vehicleStyleFunction,
-});
-
-var selectionSource = new ol.source.Vector();
-var selectionLayer = new ol.layer.Vector({
-    source: selectionSource,
-    style: null,
-});
-
-var map = new ol.Map({
-    target: 'map',
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.OSM(),
-        }),
-        selectionLayer,
-        vehicleLayer,
-    ],
-    view: new ol.View({
-        center: ol.proj.transform([25.13382, 60.21938], 'EPSG:4326', 'EPSG:3857'),
-        zoom: 12,
-    })
-,});
-
 function readPolylineFromPoints(text) {
     var stride = 2;
     var flatCoordinates = ol.format.Polyline.decodeDeltas(text, stride, 1e5);
@@ -66,7 +39,7 @@ function onFeatureSelect(feature, routeData) {
     points.getGeometry().transform('EPSG:4326', 'EPSG:3857');
     points.setStyle(styles.selectedStops(feature.get('type')));
 
-    selectionSource.addFeatures([line, points])
+    map.sources.selection.addFeatures([line, points]);
 }
 
 function distance(a, b) {
@@ -75,12 +48,13 @@ function distance(a, b) {
     return Math.sqrt(dx*dx + dy*dy);
 }
 
-map.on('singleclick', function(ev) {
-    selectionSource.clear();
+map.map.on('singleclick', function(ev) {
+    map.sources.selection.clear();
 
-    var feature = vehicleSource.getClosestFeatureToCoordinate(ev.coordinate);
+    var feature = map.sources.vehicles
+        .getClosestFeatureToCoordinate(ev.coordinate);
     var featureCoordinate = feature.getGeometry().getCoordinates();
-    if (distance(map.getPixelFromCoordinate(featureCoordinate), ev.pixel) < 15) {
+    if (distance(map.map.getPixelFromCoordinate(featureCoordinate), ev.pixel) < 15) {
         var lineRef = feature.get('lineRef');
         var url = 'http://dev.hsl.fi/opentripplanner-api-webapp/ws/transit/routeData?id=' + lineRef;
         var req = new XMLHttpRequest();
@@ -165,7 +139,7 @@ function handleSiriData(data) {
         }
     }
     if (features.length > 0) {
-        vehicleSource.addFeatures(features);
+        map.sources.vehicles.addFeatures(features);
     }
 }
 
