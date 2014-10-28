@@ -1,16 +1,3 @@
-function readPolylineFromPoints(text) {
-    var stride = 2;
-    var flatCoordinates = ol.format.Polyline.decodeDeltas(text, stride, 1e5);
-    var coordinates = [];
-    var i = 0;
-    for (var j = 0; j < flatCoordinates.length; j += stride) {
-      coordinates[i++] = flatCoordinates.slice(j, j + stride).reverse();
-    }
-    coordinates.length = i;
-
-    return new ol.Feature(new ol.geom.LineString(coordinates));
-}
-
 function onFeatureSelect(feature, routeData) {
     console.debug(feature.getProperties());
     console.debug(routeData);
@@ -26,8 +13,9 @@ function onFeatureSelect(feature, routeData) {
         }
     }
 
-    var line = readPolylineFromPoints(variant.geometry.points);
-    line.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+    var routeGeom = data.readGeometryFromEncodedPoints(variant.geometry.points);
+    routeGeom.transform('EPSG:4326', 'EPSG:3857');
+    var line = new ol.Feature(routeGeom);
     line.setStyle(styles.selectedRoute(feature.get('type')));
 
     var coords = new Array();
@@ -74,23 +62,6 @@ map.map.on('singleclick', function(ev) {
 
 var vehicleXfeature = {};
 
-function interpretJORE(routeId) {
-    if (routeId.match(/^1019/)) {
-        return ["FERRY", 4, "Ferry"];
-    } else if (routeId.match(/^1300/)) {
-        return ["SUBWAY", 1, routeId.substring(4,5)];
-    } else if (routeId.match(/^300/)) {
-        return ["RAIL", 2, routeId.substring(4,5)];
-    } else if (routeId.match(/^10(0|10)/)) {
-        return ["TRAM", 0, routeId.replace(/^..0*/, '')];
-    } else if (routeId.match(/^(1|2|4).../)) {
-        return ["BUS", 3, routeId.replace(/^.0*/, '')];
-    }
-
-    // unknown, assume bus
-    return ["BUS", 3, routeId];
-}
-
 function featureFromActivity(journey) {
     var ret = null;
 
@@ -102,7 +73,7 @@ function featureFromActivity(journey) {
         return undefined;
     }
 
-    var jore = interpretJORE(lineRef);
+    var jore = data.interpretJORE(lineRef);
     var feature = vehicleXfeature[vehicleRef];
 
     if (!feature) {
