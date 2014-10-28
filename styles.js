@@ -2,10 +2,10 @@ var styles = {
 
     colors: function (type, opacity) {
         return 'rgba(' + {
-            FERRY:  '16, 16, 208',
-            SUBWAY: '208, 96, 0',
+            FERRY:  '190, 228, 248',
+            SUBWAY: '255, 99, 25',
             RAIL:   '0, 152, 95',
-            TRAM:   '48, 160, 32',
+            TRAM:   '52, 178, 52',
             BUS:    '0, 122, 201',
         }[type] + ', ' + opacity + ')';
     },
