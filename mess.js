@@ -38,25 +38,49 @@ function onVehicleSelect(feature, routeData) {
     //map.view.fitGeometry(routeGeom, map.map.getSize());
 }
 
-map.map.on('singleclick', function(ev) {
-    var feature = map.sources.vehicles
-        .getClosestFeatureToCoordinate(ev.coordinate);
-    var featureCoordinate = feature.getGeometry().getCoordinates();
-    if (util.distance(map.map.getPixelFromCoordinate(featureCoordinate), ev.pixel) < 15) {
-        var lineRef = feature.get('lineRef');
-        var url = 'http://dev.hsl.fi/opentripplanner-api-webapp/ws/transit/routeData?id=' + lineRef;
-        util.fetchJSON(url, function(req) {
-            if (req.response && req.response.routeData[0]) {
-                onVehicleSelect(feature, req.response.routeData[0]);
-            } else {
-                console.debug(req);
+function onStopSelect(feature, stopData) {
+    console.debug(stopData);
+
+    if (!feature) {
+        map.layers.selection.setVisible(false);
+        map.layers.vehicles.setVisible(true);
+        return;
+    }
+
+    map.sources.selection.clear();
+    map.layers.selection.setVisible(true);
+
+    var remaining = stopData.length;
+    stopData.forEach(function(route) {
+        data.routeData(route.id.agencyId, route.id.id, function(routeData) {
+
+            var variant = routeData.variants[0];
+            if (routeData.variants.length > 1) {
+                routeData.variants.some(function(v) {
+                    if (v.stops.some(function(s) {
+                        return s.id.id === feature.id && s.id.agencyId === feature.agencyId;
+                    })) {
+                        variant = v;
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            var routeGeom = data.readGeometryFromEncodedPoints(
+                variant.geometry.points);
+            routeGeom.transform('EPSG:4326', 'EPSG:3857');
+            var line = new ol.Feature(routeGeom);
+            line.setStyle(styles.selectedRoute(
+                data.routeTypes[route.routeType]));
+            map.sources.selection.addFeature(line);
+
+            if (--remaining) {
+                return;
             }
         });
-    } else {
-        // deselect
-        onVehicleSelect();
-    }
-});
+    });
+}
 
 function featureFromJourney(journey) {
     var geom = new ol.geom.Point(ol.proj.transform(
@@ -132,5 +156,39 @@ map.view.on('change:resolution', function(ev) {
         map.layers.stops.setVisible(true);
     } else {
         map.layers.stops.setVisible(false);
+    }
+});
+
+var select = new ol.interaction.Select({
+    style: styles.selectedVehicleFunction,
+});
+map.map.addInteraction(select);
+map.map.addInteraction(new ol.interaction.KeyboardPan());
+map.map.addInteraction(new ol.interaction.KeyboardZoom());
+
+map.map.on('singleclick', function(ev) {
+    map.layers.base.once('precompose', function(ev) {
+        select.dispatchChangeEvent();
+    });
+});
+
+select.on('change', function(ev) {
+    var feature = ev.target.getFeatures().item(0);
+    if (feature) {
+        console.debug(feature);
+        var type = feature.get('type');
+        var agency = feature.get('agency');
+        if (type === 'vehicle') {
+            data.routeData('HSL', feature.get('lineRef'), function(routeData) {
+                onVehicleSelect(feature, routeData);
+            });
+        } else if (type === 'stop') {
+            data.routesForStop('HSL', feature.get('localId'), function(stopData) {
+                onStopSelect(feature, stopData);
+            });
+        }
+    } else {
+        onVehicleSelect();
+        onStopSelect();
     }
 });
