@@ -33,9 +33,12 @@ function onVehicleSelect(feature, routeData) {
 
     map.sources.selection.addFeatures([line, points]);
     map.layers.selection.setVisible(true);
-    //map.layers.vehicles.setVisible(false);
 
     map.fitExtent(routeGeom.getExtent());
+
+    setInfo(JSON.stringify(routeData, null, 4));
+    setInfoVisible(true);
+    setLoading(false);
 }
 
 function onStopSelect(feature, stopData) {
@@ -82,8 +85,15 @@ function onStopSelect(feature, stopData) {
             var extent = map.sources.selection.getExtent();
             map.fitExtent(extent);
             map.layers.vehicles.setVisible(false);
+            setLoading(false);
         });
     });
+    if (stopData) {
+        setInfo(JSON.stringify(stopData, null, 4));
+    } else {
+        setInfo('no info');
+    }
+    setInfoVisible(true);
 }
 
 function featureFromJourney(journey) {
@@ -150,6 +160,82 @@ function handleSiriData(data) {
     });
 }
 
+function showInfoBox() {
+    var element = document.getElementById('info');
+    while (element.lastChild) {
+        element.removeChild(element.lastChild);
+    };
+
+    var listener = function(ev) {
+        document.removeEventListener('click', listener);
+        setinfoVisible(false);
+        map.previousView();
+        ev.stopPropagation();
+    }
+    document.addEventListener('click', listener);
+
+    setinfoVisible(true);
+}
+
+function setInfo(child) {
+    var element = document.getElementById('info');
+    while (element.lastChild) {
+        element.removeChild(element.lastChild);
+    };
+
+    if (child instanceof Array) {
+        element.appendChild.apply(element, child);
+    } else {
+        if (child instanceof Element) {
+            element.appendChild(child);
+        } else {
+            var e = document.createElement('pre');
+            e.innerHTML = child;
+            element.appendChild(e);
+        }
+    }
+}
+
+function setLoading(isLoading) {
+    var element = document.getElementById('loading');
+    if (isLoading) {
+        element.classList.add('loading-animation');
+        element.style.visibility = "visible";
+        element.style.opacity = 1;
+    } else {
+        element.style.opacity = 0;
+        var listener = function(ev) {
+            element.removeEventListener('transitionend', listener);
+            element.style.visibility = "hidden";
+            element.classList.remove('loading-animation');
+        };
+        element.addEventListener('transitionend', listener);
+    }
+}
+
+function setInfoVisible(visible) {
+    var element = document.getElementById('info');
+    if (visible) {
+        element.style.visibility = "visible";
+        element.style.opacity = 1;
+        var listener = function(ev) {
+            document.removeEventListener('click', listener);
+            setInfoVisible(false);
+            map.previousView();
+            ev.stopPropagation();
+        }
+        document.addEventListener('click', listener);
+    } else {
+        element.style.opacity = 0;
+        var listener = function(ev) {
+            element.removeEventListener('transitionend', listener);
+            element.style.visibility = "hidden";
+        };
+        element.addEventListener('transitionend', listener);
+    }
+    return element;
+}
+
 data.pollSiri('HSL', handleSiriData, 5 * 1000);
 
 map.view.on('change:resolution', function(ev) {
@@ -183,10 +269,12 @@ select.on('change', function(ev) {
         var type = feature.get('type');
         var agency = feature.get('agency');
         if (type === 'vehicle') {
+            setLoading(true);
             data.routeData('HSL', feature.get('lineRef'), function(routeData) {
                 onVehicleSelect(feature, routeData);
             });
         } else if (type === 'stop') {
+            setLoading(true);
             data.routesForStop('HSL', feature.get('localId'), function(stopData) {
                 onStopSelect(feature, stopData);
             });
