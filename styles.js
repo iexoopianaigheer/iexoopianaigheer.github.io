@@ -36,13 +36,32 @@ var styles = {
     vehicleStyleFunction: function(feature, resolution) {
         return [new ol.style.Style({
             image: new ol.style.Circle({
-                radius: 10,
+                radius: 9,
                 fill: new ol.style.Fill({
-                    color: styles.colors(feature.get('type'), 0.6),
+                    color: styles.colors(feature.get('routeType'), 0.6),
                 }),
                 stroke: styles.vehicleMarkerStrokeStyle,
             }),
             text: new ol.style.Text({
+                font: '10px sans-serif medium',
+                text: feature.get('line'),
+                fill: styles.fillBlack,
+                stroke: styles.strokeWhite,
+            }),
+        })];
+    },
+
+    selectedVehicleFunction: function(feature, resolution) {
+        return [new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 10,
+                fill: new ol.style.Fill({
+                    color: styles.colors(feature.get('routeType'), 1),
+                }),
+                stroke: styles.vehicleMarkerStrokeStyle,
+            }),
+            text: new ol.style.Text({
+                font: '10px sans-serif medium',
                 text: feature.get('line'),
                 fill: styles.fillBlack,
                 stroke: styles.strokeWhite,
@@ -106,5 +125,14 @@ var styles = {
             }),
         })],
     ],
+
+    filteringStyle: function(style, filter) {
+        return function(feature, resolution) {
+            if (filter(feature)) {
+                return style(feature, resolution);
+            }
+            return styles.none;
+        };
+    },
 
 }

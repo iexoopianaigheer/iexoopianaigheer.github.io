@@ -31,4 +31,8 @@ var util = {
         req.send();
     },
 
+    geometryEquals: function(a, b) {
+        return util.arrayEquals(a.getCoordinates(), b.getCoordinates());
+    },
+
 };

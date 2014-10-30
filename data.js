@@ -21,19 +21,19 @@ var data = {
         //    # no JORE codes in use, assume bus
         //    [mode, routeType, route] = ["BUS", 3, routeId]
         if (routeId.match(/^1019/)) {
-            return ["FERRY", 4, "Ferry"];
+            return ["FERRY", "Ferry"];
         } else if (routeId.match(/^1300/)) {
-            return ["SUBWAY", 1, routeId.substring(4,5)];
+            return ["SUBWAY", routeId.substring(4,5)];
         } else if (routeId.match(/^300/)) {
-            return ["RAIL", 2, routeId.substring(4,5)];
+            return ["RAIL", routeId.substring(4,5)];
         } else if (routeId.match(/^10(0|10)/)) {
-            return ["TRAM", 0, routeId.replace(/^10(?:([^0]\d\D?)|0(\d\D?)).*$/, '$1$2')];
+            return ["TRAM", routeId.replace(/^10(?:([^0]\d\D?)|0(\d\D?)).*$/, '$1$2')];
         } else if (routeId.match(/^(1|2|4).../)) {
-            return ["BUS", 3, routeId.replace(/^.0*/, '')];
+            return ["BUS", routeId.replace(/^.0*/, '')];
         }
 
         // unknown, assume bus
-        return ["BUS", 3, routeId];
+        return ["BUS", routeId];
     },
 
     pollSiri: function(agencyId, callback, interval) {
