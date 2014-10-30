@@ -12,6 +12,10 @@ var data = {
         'FERRY',
     ],
 
+    siriUrls: {
+        HSL: 'http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL',
+    },
+
     interpretJORE: function(routeId) {
         //if citynavi.config.id != "helsinki"
         //    # no JORE codes in use, assume bus
@@ -30,6 +34,15 @@ var data = {
 
         // unknown, assume bus
         return ["BUS", 3, routeId];
+    },
+
+    pollSiri: function(agencyId, callback, interval) {
+        var url = data.siriUrls[agencyId];
+        var run = function() {
+            util.fetchJSON(url, function(req) { callback(req.response) });
+        };
+        window.setInterval(run, interval);
+        run();
     },
 
     readGeometryFromEncodedPoints: function(text) {

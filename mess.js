@@ -121,13 +121,7 @@ function handleSiriData(data) {
     }
 }
 
-function updateVehiclesFromSiri() {
-    var url = 'http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL';
-    util.fetchJSON(url, function(req) { handleSiriData(req.response) });
-}
-
-updateVehiclesFromSiri();
-window.setInterval(updateVehiclesFromSiri, 5 * 1000);
+data.pollSiri('HSL', handleSiriData, 5 * 1000);
 
 map.view.on('change:resolution', function(ev) {
     var zoom = (10 / ev.target.getResolution());
