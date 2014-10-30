@@ -63,31 +63,48 @@ var styles = {
         return [new ol.style.Style({
             image: new ol.style.Circle({
                 radius: 4,
-                fill: styles.fillBlack,
+                fill: styles.fillWhite,
+                stroke: styles.strokeBlack,
             }),
         })]
     },
 
-    stop: [new ol.style.Style({
-        image: new ol.style.Circle({
-            radius: 3,
-            fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
-            stroke: new ol.style.Stroke({ color: '#000', width: 1.4 }),
-        }),
-    })],
-
-    stopFunction: function(feature, resolution) {
-        if (resolution < 12) {
-            //return styles.stop;
-            return [new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 3 * (1 + (11 - resolution) / 4),
-                    fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
-                    stroke: new ol.style.Stroke({ color: '#000', width: 1.4 }),
-                }),
-            })];
-        }
-        return null;
-    },
+    stopAtZoomLevel: [
+        [new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 3,
+                fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
+                stroke: new ol.style.Stroke({ color: '#000', width: 1.4 }),
+            }),
+        })],
+        [new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 6,
+                fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
+                stroke: new ol.style.Stroke({ color: '#000', width: 1.6 }),
+            }),
+        })],
+        [new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 9,
+                fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
+                stroke: new ol.style.Stroke({ color: '#000', width: 1.8 }),
+            }),
+        })],
+        [new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 11,
+                fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
+                stroke: new ol.style.Stroke({ color: '#000', width: 2 }),
+            }),
+        })],
+        [new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 14,
+                fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
+                stroke: new ol.style.Stroke({ color: '#000', width: 2.4 }),
+            }),
+        })],
+    ],
 
 }

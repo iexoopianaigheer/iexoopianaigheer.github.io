@@ -1,5 +1,17 @@
 var data = {
 
+    otpUrls: {
+        HSL: 'http://dev.hsl.fi/opentripplanner-api-webapp/ws',
+    },
+
+    routeTypes: [
+        'TRAM',
+        'SUBWAY',
+        'RAIL',
+        'BUS',
+        'FERRY',
+    ],
+
     interpretJORE: function(routeId) {
         //if citynavi.config.id != "helsinki"
         //    # no JORE codes in use, assume bus
@@ -32,6 +44,58 @@ var data = {
         }
 
         return new ol.geom.LineString(coordinates);
+    },
+
+    routeData: function(agencyId, routeId, callback) {
+        var url = data.otpUrls[agencyId] + '/transit/routeData?id=' + routeId;
+        util.fetchJSON(url, function(req) {
+            if (req.response && req.response.routeData[0]) {
+                callback(req.response.routeData[0]);
+            } else {
+                console.debug(req);
+            }
+        });
+    },
+
+    routesForStop: function(agencyId, routeId, callback) {
+        var url = data.otpUrls[agencyId] + '/transit/routesForStop?id=' + routeId
+            + '&agency=' + agencyId;
+        util.fetchJSON(url, function(req) {
+            if (req.response && req.response.routes) {
+                callback(req.response.routes);
+            } else {
+                console.debug(req);
+            }
+        });
+    },
+
+    stopData: function(agencyId, routeId, callback) {
+        var url = data.otpUrls[agencyId] + '/transit/stopData?id=' + routeId
+            + '&agency=' + agencyId;
+        util.fetchJSON(url, function(req) {
+            if (req.response && req.response.stops[0]) {
+                callback(req.response.stops[0]);
+            } else {
+                console.debug(req);
+            }
+        });
+    },
+
+    stopsInExtent: function(agencyId, extent, projection, callback) {
+        extent = ol.proj.transformExtent(extent, projection, 'EPSG:4326');
+        var url = data.otpUrls[agencyId] + '/transit/stopsInRectangle?'
+            + 'agency=' + agencyId
+            + '&leftUpLat=' + extent[1]
+            + '&leftUpLon=' + extent[0]
+            + '&rightDownLat=' + extent[3]
+            + '&rightDownLon=' + extent[2];
+        util.fetchJSON(url, function(req) {
+            if (req.response && req.response.stops) {
+                callback(req.response.stops);
+            } else {
+                console.debug(req);
+            }
+        });
     },
 
 };

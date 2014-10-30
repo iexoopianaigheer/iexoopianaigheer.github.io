@@ -9,9 +9,11 @@ var map = {
                 'http://b.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png',
             ],
         }),
-        stops: new ol.source.Vector(),
         vehicles: new ol.source.Vector(),
         selection: new ol.source.Vector(),
+        stops: new ol.source.ServerVector({
+            loader: stops.loader,
+        }),
     },
 
     map: new ol.Map({
@@ -40,7 +42,7 @@ map.layers['selection'] = new ol.layer.Vector({
 });
 map.layers['stops'] = new ol.layer.Vector({
     source: map.sources.stops,
-    style: styles.stop,
+    style: null,
     visible: false,
 });
 

@@ -126,34 +126,17 @@ function updateVehiclesFromSiri() {
     util.fetchJSON(url, function(req) { handleSiriData(req.response) });
 }
 
-function getStops() {
-    var url = 'http://dev.hsl.fi/opentripplanner-api-webapp/ws/transit/stopsByName?agency=HSL&name=';
-    util.fetchJSON(url, function(req) {
-        var stops = new Array();
-        req.response.stops.forEach(function(stop) {
-            var feature = new ol.Feature({
-                geometry: new ol.geom.Point(ol.proj.transform(
-                    [stop.stopLon, stop.stopLat], 'EPSG:4326', 'EPSG:3857')),
-                stopCode: stop.stopCode,
-                id: stop.id.id,
-                agency: stop.id.agencyId,
-            });
-            if (feature) {
-                stops.push(feature);
-            } else {
-                console.debug(stop);
-            }
-        });
-
-        map.sources.stops.addFeatures(stops);
-    });
-}
-
-getStops();
-
 updateVehiclesFromSiri();
 window.setInterval(updateVehiclesFromSiri, 5 * 1000);
 
 map.view.on('change:resolution', function(ev) {
-    map.layers.stops.setVisible(ev.target.getZoom() > 13);
+    var zoom = (10 / ev.target.getResolution());
+    if (~~zoom) {
+        zoom = Math.min(~~Math.log2(zoom), styles.stopAtZoomLevel.length - 1);
+        console.debug(zoom);
+        map.layers.stops.setStyle(styles.stopAtZoomLevel[zoom]);
+        map.layers.stops.setVisible(true);
+    } else {
+        map.layers.stops.setVisible(false);
+    }
 });
