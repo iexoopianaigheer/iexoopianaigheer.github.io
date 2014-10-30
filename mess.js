@@ -35,7 +35,7 @@ function onVehicleSelect(feature, routeData) {
     map.layers.selection.setVisible(true);
     //map.layers.vehicles.setVisible(false);
 
-    //map.view.fitGeometry(routeGeom, map.map.getSize());
+    map.fitExtent(routeGeom.getExtent());
 }
 
 function onStopSelect(feature, stopData) {
@@ -78,6 +78,10 @@ function onStopSelect(feature, stopData) {
             if (--remaining) {
                 return;
             }
+
+            var extent = map.sources.selection.getExtent();
+            map.fitExtent(extent);
+            map.layers.vehicles.setVisible(false);
         });
     });
 }

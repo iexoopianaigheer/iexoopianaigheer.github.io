@@ -21,6 +21,37 @@ var map = {
         zoom: 12,
     }),
 
+    setAnimation: function(duration) {
+        map.map.beforeRender(
+            ol.animation.zoom({
+                duration: duration,
+                easing: ol.easing.inAndOut,
+                resolution: map.view.getResolution(),
+            }),
+            ol.animation.pan({
+                duration: duration,
+                easing: ol.easing.inAndOut,
+                source: map.view.getCenter(),
+            })
+        );
+    },
+
+    fitExtent: function(extent) {
+        map._prevResolution = map.view.getResolution();
+        map._prevCenter = map.view.getCenter();
+
+        map.setAnimation(2000);
+        map.view.setResolution(
+            map.view.getResolutionForExtent(extent, map.map.getSize()) * 1.1);
+        map.view.setCenter(ol.extent.getCenter(extent));
+    },
+
+    previousView: function() {
+        map.setAnimation(500);
+        map.view.setCenter(map._prevCenter);
+        map.view.setResolution(map._prevResolution);
+    },
+
 };
 
 // construct layers
