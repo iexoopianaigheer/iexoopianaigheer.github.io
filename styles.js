@@ -11,7 +11,7 @@ var styles = {
     },
 
     vehicleMarkerStrokeStyle: new ol.style.Stroke({
-        color: '#f0f0f0',
+        color: '#616365',
         width: 2,
     }),
 
@@ -131,7 +131,7 @@ var styles = {
             if (filter(feature)) {
                 return style(feature, resolution);
             }
-            return styles.none;
+            return null;
         };
     },
 

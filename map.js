@@ -3,12 +3,7 @@ var map = {
     layers: {},
 
     sources: {
-        base: new ol.source.XYZ({
-            urls: [
-                'http://a.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png',
-                'http://b.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png',
-            ],
-        }),
+        base: new ol.source.Stamen({ layer: 'toner' }),
         vehicles: new ol.source.Vector(),
         selection: new ol.source.Vector(),
         stops: new ol.source.ServerVector({
