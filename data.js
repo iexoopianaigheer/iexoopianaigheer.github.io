@@ -36,6 +36,51 @@ var data = {
         return ["BUS", routeId];
     },
 
+    featureFromJourney: function(journey) {
+        var geom = new ol.geom.Point(ol.proj.transform(
+            [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
+            'EPSG:4326', 'EPSG:3857'));
+        var lineRef = journey.LineRef.value;
+        var vehicleRef = journey.VehicleRef.value;
+        var jore = data.interpretJORE(lineRef);
+
+        var feature = new ol.Feature({
+            bearing: journey.Bearing,
+            delay: journey.Delay,
+            direction: journey.DirectionRef.value,
+            geometry: geom,
+            line: jore[1],
+            lineRef: lineRef,
+            routeType: jore[0],
+            vehicleRef: vehicleRef,
+            type: 'vehicle',
+        });
+        feature.setId(vehicleRef);
+
+        return feature;
+    },
+
+    featureFromStop: function(stop) {
+        if (!stop.stopCode) {
+            return null;
+        }
+
+        var geom = new ol.geom.Point(ol.proj.transform(
+                [stop.stopLon, stop.stopLat],
+                'EPSG:4326', 'EPSG:3857'));
+        var feature = new ol.Feature({
+            geometry: geom,
+            agencyId: stop.id.agencyId,
+            localId: stop.id.id,
+            name: stop.stopName,
+            stopCode: stop.stopCode,
+            type: 'stop',
+        });
+        feature.setId(stop.id.agencyId + stop.id.id);
+
+        return feature;
+    },
+
     pollSiri: function(agencyId, callback, interval) {
         var url = data.siriUrls[agencyId];
         var run = function() {

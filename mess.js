@@ -36,13 +36,11 @@ function onVehicleSelect(feature, routeData) {
 
     map.fitExtent(routeGeom.getExtent());
 
-    setInfo(JSON.stringify(routeData, null, 4));
-    setInfoVisible(true);
+    infoBox.setInfo(JSON.stringify(routeData, null, 4));
+    infoBox.setVisible(true);
 }
 
 function onStopSelect(feature, stopData) {
-    console.debug(stopData);
-
     if (!feature) {
         map.layers.selection.setVisible(false);
         map.layers.vehicles.setVisible(true);
@@ -81,44 +79,22 @@ function onStopSelect(feature, stopData) {
                 return;
             }
 
+            map.layers.vehicles.setVisible(false);
             var extent = map.sources.selection.getExtent();
             map.fitExtent(extent);
-            map.layers.vehicles.setVisible(false);
         });
     });
+
     if (stopData) {
-        setInfo(JSON.stringify(stopData, null, 4));
+        infoBox.setInfo(JSON.stringify(stopData, null, 4));
     } else {
-        setInfo('no info');
+        infoBox.setInfo('no info');
     }
-    setInfoVisible(true);
+
+    infoBox.setVisible(true);
 }
 
-function featureFromJourney(journey) {
-    var geom = new ol.geom.Point(ol.proj.transform(
-        [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
-        'EPSG:4326', 'EPSG:3857'));
-    var lineRef = journey.LineRef.value;
-    var vehicleRef = journey.VehicleRef.value;
-    var jore = data.interpretJORE(lineRef);
-
-    var feature = new ol.Feature({
-        bearing: journey.Bearing,
-        delay: journey.Delay,
-        direction: journey.DirectionRef.value,
-        geometry: geom,
-        line: jore[1],
-        lineRef: lineRef,
-        routeType: jore[0],
-        vehicleRef: vehicleRef,
-        type: 'vehicle',
-    });
-    feature.setId(vehicleRef);
-
-    return feature;
-}
-
-function featureFromActivity(journey) {
+function vehicleActivity(journey) {
     var vehicleRef = journey.VehicleRef.value;
     var lineRef = journey.LineRef.value;
     var feature = map.sources.vehicles.getFeatureById(vehicleRef);
@@ -146,7 +122,7 @@ function featureFromActivity(journey) {
             feature.set('lineRef', lineRef);
         }
     } else {
-        feature = featureFromJourney(journey);
+        feature = data.featureFromJourney(journey);
         map.sources.vehicles.addFeature(feature);
     }
 }
@@ -154,67 +130,8 @@ function featureFromActivity(journey) {
 function handleSiriData(data) {
     data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity
             .forEach(function(activity) {
-        featureFromActivity(activity.MonitoredVehicleJourney);
+        vehicleActivity(activity.MonitoredVehicleJourney);
     });
-}
-
-function showInfoBox() {
-    var element = document.getElementById('info');
-    while (element.lastChild) {
-        element.removeChild(element.lastChild);
-    };
-
-    var listener = function(ev) {
-        document.removeEventListener('click', listener);
-        setinfoVisible(false);
-        map.previousView();
-        ev.stopPropagation();
-    }
-    document.addEventListener('click', listener);
-
-    setinfoVisible(true);
-}
-
-function setInfo(child) {
-    var element = document.getElementById('info');
-    while (element.lastChild) {
-        element.removeChild(element.lastChild);
-    };
-
-    if (child instanceof Array) {
-        element.appendChild.apply(element, child);
-    } else {
-        if (child instanceof Element) {
-            element.appendChild(child);
-        } else {
-            var e = document.createElement('pre');
-            e.innerHTML = child;
-            element.appendChild(e);
-        }
-    }
-}
-
-function setInfoVisible(visible) {
-    var element = document.getElementById('info');
-    if (visible) {
-        element.style.visibility = "visible";
-        element.style.opacity = 1;
-        var listener = function(ev) {
-            document.removeEventListener('click', listener);
-            setInfoVisible(false);
-            map.previousView();
-            ev.stopPropagation();
-        }
-        document.addEventListener('click', listener);
-    } else {
-        element.style.opacity = 0;
-        var listener = function(ev) {
-            element.removeEventListener('transitionend', listener);
-            element.style.visibility = "hidden";
-        };
-        element.addEventListener('transitionend', listener);
-    }
-    return element;
 }
 
 data.pollSiri('HSL', handleSiriData, 5 * 1000);
@@ -246,7 +163,6 @@ map.map.on('singleclick', function(ev) {
 select.on('change', function(ev) {
     var feature = ev.target.getFeatures().item(0);
     if (feature) {
-        console.debug(feature);
         var type = feature.get('type');
         var agency = feature.get('agency');
         if (type === 'vehicle') {
