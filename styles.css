@@ -13,7 +13,7 @@ body {
 
 #info {
     background-color: rgba(20, 20, 20, 0.5);
-    border-radius: 5%;
+    border-radius: 2em;
     height: 90%;
     left: 5%;
     opacity: 0;
@@ -60,12 +60,12 @@ body {
 }
 
 @-webkit-keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(180deg); }
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(180deg); }
 }
 @-moz-keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(180deg); }
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(180deg); }
 }
 @keyframes rotate {
     from { transform: rotate(0deg); }

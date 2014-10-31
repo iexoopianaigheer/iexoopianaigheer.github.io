@@ -38,7 +38,6 @@ function onVehicleSelect(feature, routeData) {
 
     setInfo(JSON.stringify(routeData, null, 4));
     setInfoVisible(true);
-    setLoading(false);
 }
 
 function onStopSelect(feature, stopData) {
@@ -85,7 +84,6 @@ function onStopSelect(feature, stopData) {
             var extent = map.sources.selection.getExtent();
             map.fitExtent(extent);
             map.layers.vehicles.setVisible(false);
-            setLoading(false);
         });
     });
     if (stopData) {
@@ -196,23 +194,6 @@ function setInfo(child) {
     }
 }
 
-function setLoading(isLoading) {
-    var element = document.getElementById('loading');
-    if (isLoading) {
-        element.classList.add('loading-animation');
-        element.style.visibility = "visible";
-        element.style.opacity = 1;
-    } else {
-        element.style.opacity = 0;
-        var listener = function(ev) {
-            element.removeEventListener('transitionend', listener);
-            element.style.visibility = "hidden";
-            element.classList.remove('loading-animation');
-        };
-        element.addEventListener('transitionend', listener);
-    }
-}
-
 function setInfoVisible(visible) {
     var element = document.getElementById('info');
     if (visible) {
@@ -269,12 +250,10 @@ select.on('change', function(ev) {
         var type = feature.get('type');
         var agency = feature.get('agency');
         if (type === 'vehicle') {
-            setLoading(true);
             data.routeData('HSL', feature.get('lineRef'), function(routeData) {
                 onVehicleSelect(feature, routeData);
             });
         } else if (type === 'stop') {
-            setLoading(true);
             data.routesForStop('HSL', feature.get('localId'), function(stopData) {
                 onStopSelect(feature, stopData);
             });

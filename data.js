@@ -39,7 +39,7 @@ var data = {
     pollSiri: function(agencyId, callback, interval) {
         var url = data.siriUrls[agencyId];
         var run = function() {
-            util.fetchJSON(url, function(req) { callback(req.response) });
+            util.fetchJSON(url, function(req) { callback(req.response) }, true);
         };
         window.setInterval(run, interval);
         run();

@@ -22,13 +22,21 @@ var util = {
         return Math.sqrt(dx*dx + dy*dy);
     },
 
-    fetchJSON: function(url, callback) {
+    fetchJSON: function(url, callback, silent) {
         var req = new XMLHttpRequest();
         req.open('GET', url, true);
         req.setRequestHeader('Accept', 'application/json');
         req.responseType = 'json';
-        req.onload = function(ev) { callback(req) };
+        req.onload = function(ev) {
+            if (!silent) {
+                loading.dec();
+            }
+            callback(req);
+        };
         req.send();
+        if (!silent) {
+            loading.inc();
+        }
     },
 
     geometryEquals: function(a, b) {
