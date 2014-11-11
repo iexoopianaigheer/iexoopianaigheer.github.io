@@ -19,24 +19,81 @@ var map = {
 
     layers: {},
 
-    sources: {
-        base: new ol.source.Stamen({ layer: 'toner' }),
-        vehicles: new ol.source.Vector(),
-        selection: new ol.source.Vector(),
-        stops: new ol.source.ServerVector({
-            loader: stops.loader,
-        }),
-    },
-
     map: new ol.Map({
         target: 'map',
     }),
 
+    sources: {
+        base: new ol.source.Stamen({ layer: 'toner' }),
+        vehicles: new ol.source.Vector(),
+        selection: new ol.source.Vector(),
+    },
+
     view: new ol.View({
         center: ol.proj.transform(
-            [25.13382, 60.21938], 'EPSG:4326', 'EPSG:3857'),
-        zoom: 12,
+            [25, 62.5], 'EPSG:4326', 'EPSG:3857'),
+        zoom: 7,
     }),
+
+    fitExtent: function(extent) {
+        map._prevResolution = map.view.getResolution();
+        map._prevCenter = map.view.getCenter();
+
+        map.setAnimation(2000);
+        map.view.setResolution(
+            map.view.getResolutionForExtent(extent, map.map.getSize()) * 1.1);
+        map.view.setCenter(ol.extent.getCenter(extent));
+    },
+
+    init: function(agencyId) {
+        // stops source
+        map.sources.stops = new ol.source.ServerVector({
+            loader: map.stopsLoader(agencyId),
+        });
+
+        // construct layers
+        map.layers.base = new ol.layer.Tile({
+            source: map.sources.base,
+        });
+        map.layers.vehicles = new ol.layer.Vector({
+            source: map.sources.vehicles,
+            style: styles.vehicleStyleFunction,
+        });
+        map.layers.selection = new ol.layer.Vector({
+            source: map.sources.selection,
+            style: null,
+        });
+        map.layers.stops = new ol.layer.Vector({
+            source: map.sources.stops,
+            style: null,
+            visible: false,
+        });
+
+        // view
+        map.view.on('change:resolution', function(ev) {
+            var zoom = (10 / ev.target.getResolution());
+            if (~~zoom) {
+                zoom = ~~(Math.log(zoom) / Math.LN2);
+                map.layers.stops.setStyle(styles.stopAtZoomLevel[
+                    Math.min(zoom, styles.stopAtZoomLevel.length - 1)]);
+                map.layers.stops.setVisible(true);
+            } else {
+                map.layers.stops.setVisible(false);
+            }
+        });
+
+        // map
+        ['base', 'stops', 'selection', 'vehicles'].forEach(function(key) {
+            map.map.addLayer(map.layers[key]);
+        });
+        map.map.setView(map.view);
+    },
+
+    previousView: function() {
+        map.setAnimation(500);
+        map.view.setCenter(map._prevCenter);
+        map.view.setResolution(map._prevResolution);
+    },
 
     setAnimation: function(duration) {
         map.map.beforeRender(
@@ -53,43 +110,21 @@ var map = {
         );
     },
 
-    fitExtent: function(extent) {
-        map._prevResolution = map.view.getResolution();
-        map._prevCenter = map.view.getCenter();
-
-        map.setAnimation(2000);
-        map.view.setResolution(
-            map.view.getResolutionForExtent(extent, map.map.getSize()) * 1.1);
-        map.view.setCenter(ol.extent.getCenter(extent));
-    },
-
-    previousView: function() {
-        map.setAnimation(500);
-        map.view.setCenter(map._prevCenter);
-        map.view.setResolution(map._prevResolution);
+    stopsLoader: function(agencyId) {
+        return function(extent, resolution, projection) {
+            data.stopsInExtent(agencyId, extent, projection, function(stopData) {
+                var features = new Array(stopData.length);
+                var i = 0;
+                stopData.forEach(function(stop) {
+                    var feature = data.featureFromStop(stop);
+                    if (feature) {
+                        features[i++] = feature;
+                    }
+                });
+                features.length = i;
+                map.sources.stops.addFeatures(features);
+            });
+        };
     },
 
 };
-
-// construct layers
-map.layers['base'] = new ol.layer.Tile({
-    source: map.sources.base,
-});
-map.layers['vehicles'] = new ol.layer.Vector({
-    source: map.sources.vehicles,
-    style: styles.vehicleStyleFunction,
-});
-map.layers['selection'] = new ol.layer.Vector({
-    source: map.sources.selection,
-    style: null,
-});
-map.layers['stops'] = new ol.layer.Vector({
-    source: map.sources.stops,
-    style: null,
-    visible: false,
-});
-
-['base', 'stops', 'selection', 'vehicles'].forEach(function(key) {
-    map.map.addLayer(map.layers[key]);
-});
-map.map.setView(map.view);

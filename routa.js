@@ -151,48 +151,42 @@ function handleSiriData(data) {
     });
 }
 
-data.pollSiri('HSL', handleSiriData, 5 * 1000);
+function init() {
+    var agencyId = 'HSL';
+    map.init(agencyId);
 
-map.view.on('change:resolution', function(ev) {
-    var zoom = (10 / ev.target.getResolution());
-    if (~~zoom) {
-        zoom = Math.min(~~Math.log2(zoom), styles.stopAtZoomLevel.length - 1);
-        map.layers.stops.setStyle(styles.stopAtZoomLevel[zoom]);
-        map.layers.stops.setVisible(true);
-    } else {
-        map.layers.stops.setVisible(false);
-    }
-});
+    data.pollSiri(agencyId, handleSiriData, 5 * 1000);
 
-var select = new ol.interaction.Select({
-    style: styles.selectedVehicleFunction,
-});
-map.map.addInteraction(select);
-map.map.addInteraction(new ol.interaction.KeyboardPan());
-map.map.addInteraction(new ol.interaction.KeyboardZoom());
-
-map.map.on('singleclick', function(ev) {
-    map.layers.base.once('precompose', function(ev) {
-        select.dispatchChangeEvent();
+    var select = new ol.interaction.Select({
+        style: styles.selectedVehicleFunction,
     });
-});
+    map.map.addInteraction(select);
 
-select.on('change', function(ev) {
-    var feature = ev.target.getFeatures().item(0);
-    if (feature) {
-        var type = feature.get('type');
-        var agency = feature.get('agency');
-        if (type === 'vehicle') {
-            data.routeData('HSL', feature.get('lineRef'), function(routeData) {
-                onVehicleSelect(feature, routeData);
-            });
-        } else if (type === 'stop') {
-            data.routesForStop('HSL', feature.get('localId'), function(stopData) {
-                onStopSelect(feature, stopData);
-            });
+    map.map.on('singleclick', function(ev) {
+        map.layers.base.once('precompose', function(ev) {
+            select.dispatchChangeEvent();
+        });
+    });
+
+    select.on('change', function(ev) {
+        var feature = ev.target.getFeatures().item(0);
+        if (feature) {
+            var type = feature.get('type');
+            var agency = feature.get('agency');
+            if (type === 'vehicle') {
+                data.routeData(agencyId, feature.get('lineRef'), function(routeData) {
+                    onVehicleSelect(feature, routeData);
+                });
+            } else if (type === 'stop') {
+                data.routesForStop(agencyId, feature.get('localId'), function(stopData) {
+                    onStopSelect(feature, stopData);
+                });
+            }
+        } else {
+            onVehicleSelect();
+            onStopSelect();
         }
-    } else {
-        onVehicleSelect();
-        onStopSelect();
-    }
-});
+    });
+}
+
+window.addEventListener('load', init);
