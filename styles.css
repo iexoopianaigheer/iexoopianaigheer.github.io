@@ -33,6 +33,27 @@ body {
     word-break: break-word;
 }
 
+.city-select {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+}
+
+.city-select > * {
+    background-color: rgba(20, 20, 20, 0.5);
+    border-radius: 2em;
+    color: white;
+    cursor: pointer;
+    font-family: Gotham Rounded,Verdana,Arial,sans-serif;
+    font-size: 150%;
+    margin: 5%;
+    padding: 1em;
+    position: relative;
+    text-align: center;
+}
+
 #loading {
     position: absolute;
     top: 0;

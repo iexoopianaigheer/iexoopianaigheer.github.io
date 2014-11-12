@@ -151,8 +151,54 @@ function handleSiriData(data) {
     });
 }
 
-function init() {
-    var agencyId = 'HSL';
+function getCityFromPosition(position) {
+    var agencyId = undefined;
+    ['HSL', 'JOLI', 'Oulun kaupunki'].some(function(k) {
+        if (ol.extent.containsCoordinate(map.cityExtents[k], position)) {
+            agencyId = k;
+            return true;
+        }
+        return false;
+    });
+    return agencyId;
+}
+
+function selectCity() {
+    var container = dom.createChildNode(document.body, 'div', 'city-select');
+    var clickHandler = function(agencyId) {
+        return function(ev) {
+            document.body.removeChild(container);
+            init(agencyId);
+        };
+    };
+
+    var e;
+    e = dom.createChildNode(container, 'div', 'button', 'Helsingin seutu');
+    e.addEventListener('click', clickHandler('HSL'));
+
+    e = dom.createChildNode(container, 'div', 'button', 'Tampere');
+    e.addEventListener('click', clickHandler('JOLI'));
+
+    e = dom.createChildNode(container, 'div', 'button', 'Oulu');
+    e.addEventListener('click', clickHandler('Oulun kaupunki'));
+}
+
+function init(agencyId, coords) {
+    window.routa = {
+        config: {
+            agencyId: agencyId,
+        },
+    };
+
+    map.setAnimation(1000);
+    if (coords) {
+        map.view.setCenter(ol.proj.transform(coords, 'EPSG:4326', 'EPSG:3857'));
+        map.view.setZoom(13); //TODO
+    } else {
+        coords = map.viewCenters[agencyId];
+        map.view.setCenter(ol.proj.transform(coords, 'EPSG:4326', 'EPSG:3857'));
+        map.view.setZoom(11);
+    }
     map.init(agencyId);
 
     data.pollSiri(agencyId, handleSiriData, 5 * 1000);
@@ -189,4 +235,19 @@ function init() {
     });
 }
 
-window.addEventListener('load', init);
+window.addEventListener('load', function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            console.debug(pos);
+            var coords = [pos.coords.longitude, pos.coords.latitude];
+            var agencyId = getCityFromPosition(coords);
+            if (agencyId) {
+                init(agencyId, coords);
+            } else {
+                selectCity();
+            }
+       }, selectCity);
+    } else {
+        selectCity();
+    }
+});

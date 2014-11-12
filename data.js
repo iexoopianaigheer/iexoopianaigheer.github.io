@@ -19,6 +19,8 @@ var data = {
 
     otpUrls: {
         HSL: 'http://dev.hsl.fi/opentripplanner-api-webapp/ws',
+        JOLI: 'http://178.217.128.220/otp-rest-servlet/ws',
+        'Oulun kaupunki': 'http://navi.oulunliikenne.fi/otp-rest-servlet/ws',
     },
 
     routeTypes: [
@@ -31,12 +33,14 @@ var data = {
 
     siriUrls: {
         HSL: 'http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL',
+        JOLI: 'http://data.itsfactory.fi/siriaccess/vm/json',
     },
 
     interpretJORE: function(routeId) {
-        //if citynavi.config.id != "helsinki"
-        //    # no JORE codes in use, assume bus
-        //    [mode, routeType, route] = ["BUS", 3, routeId]
+        if (routa.config.agencyId != 'HSL') {
+            return ["BUS", routeId];
+        }
+
         if (routeId.match(/^1019/)) {
             return ["FERRY", "Ferry"];
         } else if (routeId.match(/^1300/)) {
@@ -78,7 +82,8 @@ var data = {
     },
 
     featureFromStop: function(stop) {
-        if (!stop.stopCode) {
+        if (routa.config.agencyId != 'Oulun kaupunki'
+                && !stop.stopCode) {
             return null;
         }
 
@@ -100,11 +105,17 @@ var data = {
 
     pollSiri: function(agencyId, callback, interval) {
         var url = data.siriUrls[agencyId];
+        if (!url) {
+            return undefined;
+        }
+
         var run = function() {
             util.fetchJSON(url, function(req) { callback(req.response) }, true);
         };
-        window.setInterval(run, interval);
+        var timer = window.setInterval(run, interval);
         run();
+
+        return timer;
     },
 
     readGeometryFromEncodedPoints: function(text) {

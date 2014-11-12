@@ -17,6 +17,21 @@
 
 var map = {
 
+    cityExtents: {
+        HSL: [
+            23.8677978515625, 60.01820719756269,
+            26.350708007812496, 60.48970392643919
+        ],
+        JOLI: [
+            22.7911376953125, 61.17503266354878,
+            24.78515625, 61.68726699130697
+        ],
+        'Oulun kaupunki': [
+            24.5654296875, 64.69910544204765,
+            26.411132812499996, 65.23830662451157
+        ],
+    },
+
     layers: {},
 
     map: new ol.Map({
@@ -35,6 +50,12 @@ var map = {
         zoom: 7,
     }),
 
+    viewCenters: {
+        HSL: [ 24.941024780273438, 60.171915590195724 ],
+        JOLI: [ 23.77381324768066, 61.498662694465786 ],
+        'Oulun kaupunki': [ 25.484333038330078, 65.01132184489164 ],
+    },
+
     fitExtent: function(extent) {
         map._prevResolution = map.view.getResolution();
         map._prevCenter = map.view.getCenter();
@@ -52,9 +73,6 @@ var map = {
         });
 
         // construct layers
-        map.layers.base = new ol.layer.Tile({
-            source: map.sources.base,
-        });
         map.layers.vehicles = new ol.layer.Vector({
             source: map.sources.vehicles,
             style: styles.vehicleStyleFunction,
@@ -83,10 +101,9 @@ var map = {
         });
 
         // map
-        ['base', 'stops', 'selection', 'vehicles'].forEach(function(key) {
+        ['stops', 'selection', 'vehicles'].forEach(function(key) {
             map.map.addLayer(map.layers[key]);
         });
-        map.map.setView(map.view);
     },
 
     previousView: function() {
@@ -128,3 +145,9 @@ var map = {
     },
 
 };
+
+map.layers.base = new ol.layer.Tile({
+    source: map.sources.base,
+});
+map.map.addLayer(map.layers.base);
+map.map.setView(map.view);

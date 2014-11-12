@@ -113,3 +113,36 @@ var infoBox = {
     },
 
 };
+
+var dom = {
+
+    createChildNode: function(parent, tag, classList, textContent) {
+        var e = dom.createNode(tag, classList, textContent);
+        if (parent) {
+            parent.appendChild(e);
+        }
+
+        return e;
+    },
+
+    createNode: function(tag, classList, textContent) {
+        var e = document.createElement(tag);
+
+        if (classList) {
+            if (classList instanceof Array) {
+                classList.forEach(function(cls) {
+                    e.classList.add(cls);
+                });
+            } else {
+                e.classList.add(classList);
+            }
+        }
+
+        if (textContent != undefined) {
+            e.textContent = textContent;
+        }
+
+        return e;
+    },
+
+};
