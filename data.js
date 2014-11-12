@@ -36,21 +36,35 @@ var data = {
         JOLI: 'http://data.itsfactory.fi/siriaccess/vm/json',
     },
 
-    interpretJORE: function(routeId) {
-        if (routa.config.agencyId != 'HSL') {
-            return ["BUS", routeId];
+    getRouteVariant: function(routeData, direction) {
+        var variant = 0;
+        if (direction) {
+            variant = parseInt(direction);
+        }
+        variant = Math.min(Math.max(variant, 0), routeData.variants.length - 1);
+        return routeData.variants[variant];
+    },
+
+    interpretLineRef: function(routeId) {
+        var agencyId = routa.config.agencyId;
+        if (agencyId !== 'HSL') {
+            if (agencyId === 'JOLI') {
+                return ["BUS", routeId, routeId.replace(/\D+$/, '')];
+            }
+            return ["BUS", routeId, routeId];
         }
 
         if (routeId.match(/^1019/)) {
-            return ["FERRY", "Ferry"];
+            return ["FERRY", "Ferry", routeId];
         } else if (routeId.match(/^1300/)) {
-            return ["SUBWAY", routeId.substring(4,5)];
+            return ["SUBWAY", routeId.substring(4,5), routeId];
         } else if (routeId.match(/^300/)) {
-            return ["RAIL", routeId.substring(4,5)];
+            return ["RAIL", routeId.substring(4,5), routeId];
         } else if (routeId.match(/^10(0|10)/)) {
-            return ["TRAM", routeId.replace(/^10(?:([^0]\d\D?)|0(\d\D?)).*$/, '$1$2')];
+            var line = routeId.replace(/^10(?:([^0]\d\D?)|0(\d[A-Za-z]?)).*$/, '$1$2');
+            return ["TRAM", line, routeId.replace(/(\D)\d+$/, '$1')];
         } else if (routeId.match(/^(1|2|4).../)) {
-            return ["BUS", routeId.replace(/^.0*/, '')];
+            return ["BUS", routeId.replace(/^.0*/, ''), routeId];
         }
 
         // unknown, assume bus
@@ -58,25 +72,15 @@ var data = {
     },
 
     featureFromJourney: function(journey) {
-        var geom = new ol.geom.Point(ol.proj.transform(
-            [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
-            'EPSG:4326', 'EPSG:3857'));
         var lineRef = journey.LineRef.value;
         var vehicleRef = journey.VehicleRef.value;
-        var jore = data.interpretJORE(lineRef);
-
         var feature = new ol.Feature({
-            bearing: journey.Bearing,
-            delay: journey.Delay,
-            direction: journey.DirectionRef.value,
-            geometry: geom,
-            line: jore[1],
-            lineRef: lineRef,
-            routeType: jore[0],
+            routeType: data.interpretLineRef(lineRef)[0],
             vehicleRef: vehicleRef,
             type: 'vehicle',
         });
         feature.setId(vehicleRef);
+        data.updateFeatureFromJourney(feature, journey);
 
         return feature;
     },
@@ -182,6 +186,27 @@ var data = {
                 console.debug(req);
             }
         });
+    },
+
+    updateFeatureFromJourney: function(feature, journey) {
+        var oldGeom = feature.getGeometry();
+        var newGeom = new ol.geom.Point(ol.proj.transform(
+            [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
+            'EPSG:4326', 'EPSG:3857'));
+
+        if (oldGeom !== undefined && util.geometryEquals(oldGeom, newGeom)) {
+            return false;
+        }
+
+        var lineInfo = data.interpretLineRef(journey.LineRef.value);
+        feature.setGeometry(newGeom);
+        feature.set('bearing', journey.Bearing);
+        feature.set('delay', journey.Delay);
+        feature.set('direction', journey.DirectionRef.value);
+        feature.set('line', lineInfo[1]);
+        feature.set('lineRef', lineInfo[2]);
+
+        return true;
     },
 
 };

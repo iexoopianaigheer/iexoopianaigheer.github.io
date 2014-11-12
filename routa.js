@@ -24,9 +24,7 @@ function onVehicleSelect(feature, routeData) {
         return;
     }
 
-    var variant = routeData.variants[
-        feature.get('direction') ? parseInt(feature.get('direction'), 10) : 0];
-
+    var variant = data.getRouteVariant(routeData, feature.get('direction'));
     var routeGeom = data.readGeometryFromEncodedPoints(variant.geometry.points);
     routeGeom.transform('EPSG:4326', 'EPSG:3857');
     var line = new ol.Feature(routeGeom);
@@ -122,22 +120,7 @@ function vehicleActivity(journey) {
             map.sources.vehicles.removeFeature(feature);
         }
     } else if (feature) {
-        // update an existing feature
-        var jore = data.interpretJORE(lineRef);
-        var oldGeom = feature.getGeometry();
-        var newGeom = new ol.geom.Point(ol.proj.transform(
-            [journey.VehicleLocation.Longitude, journey.VehicleLocation.Latitude],
-            'EPSG:4326', 'EPSG:3857'));
-
-        if (!util.geometryEquals(oldGeom, newGeom)) {
-            // but only if it moved
-            feature.setGeometry(newGeom);
-            feature.set('bearing', journey.Bearing);
-            feature.set('delay', journey.Delay);
-            feature.set('direction', journey.DirectionRef.value);
-            feature.set('line', jore[1]);
-            feature.set('lineRef', lineRef);
-        }
+        data.updateFeatureFromJourney(feature, journey);
     } else {
         feature = data.featureFromJourney(journey);
         map.sources.vehicles.addFeature(feature);
