@@ -132,7 +132,10 @@ var data = {
           coordinates[i] = flatCoords.slice(j, j + 2);
         }
 
-        return new ol.geom.LineString(coordinates);
+        var geom = new ol.geom.LineString(coordinates);
+        geom.transform('EPSG:4326', 'EPSG:3857');
+
+        return geom;
     },
 
     routeData: function(agencyId, routeId, success, failure) {

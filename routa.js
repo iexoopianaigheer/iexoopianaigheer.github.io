@@ -25,10 +25,17 @@ function onVehicleSelect(feature, routeData) {
     }
 
     var variant = data.getRouteVariant(routeData, feature.get('direction'));
-    var routeGeom = data.readGeometryFromEncodedPoints(variant.geometry.points);
-    routeGeom.transform('EPSG:4326', 'EPSG:3857');
-    var line = new ol.Feature(routeGeom);
-    line.setStyle(styles.selectedRoute(feature.get('routeType')));
+    (feature.get('routeType') === 'BUS'
+            ? [variant]
+            : routeData.variants
+    ).forEach(function(v) {
+        var routeGeom = data.readGeometryFromEncodedPoints(v.geometry.points);
+        var line = new ol.Feature(routeGeom);
+        line.setStyle(styles.selectedRoute(feature.get('routeType')));
+
+        map.sources.selection.addFeature(line);
+
+    });
 
     var n = variant.stops.length;
     var coords = new Array(n);
@@ -46,10 +53,10 @@ function onVehicleSelect(feature, routeData) {
     });
     map.layers.vehicles.setStyle(style);
 
-    map.sources.selection.addFeatures([line, points]);
+    map.sources.selection.addFeature(points);
     map.layers.selection.setVisible(true);
 
-    map.fitExtent(routeGeom.getExtent());
+    map.fitExtent(map.sources.selection.getExtent());
 
     infoBox.setInfo(JSON.stringify(routeData, null, 4));
     infoBox.setVisible(true);
@@ -84,7 +91,6 @@ function onStopSelect(feature, stopData) {
 
             var routeGeom = data.readGeometryFromEncodedPoints(
                 variant.geometry.points);
-            routeGeom.transform('EPSG:4326', 'EPSG:3857');
             var line = new ol.Feature(routeGeom);
             line.setStyle(styles.selectedRoute(
                 data.routeTypes[route.routeType]));
