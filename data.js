@@ -75,7 +75,6 @@ var data = {
         var lineRef = journey.LineRef.value;
         var vehicleRef = journey.VehicleRef.value;
         var feature = new ol.Feature({
-            routeType: data.interpretLineRef(lineRef)[0],
             vehicleRef: vehicleRef,
             type: 'vehicle',
         });
@@ -136,42 +135,48 @@ var data = {
         return new ol.geom.LineString(coordinates);
     },
 
-    routeData: function(agencyId, routeId, callback) {
+    routeData: function(agencyId, routeId, success, failure) {
         var url = data.otpUrls[agencyId] + '/transit/routeData?id=' + routeId;
         util.fetchJSON(url, function(req) {
             if (req.response && req.response.routeData[0]) {
-                callback(req.response.routeData[0]);
+                success(req.response.routeData[0]);
+            } else if (failure) {
+                failure(req);
             } else {
                 console.debug(req);
             }
         });
     },
 
-    routesForStop: function(agencyId, routeId, callback) {
+    routesForStop: function(agencyId, routeId, success, failure) {
         var url = data.otpUrls[agencyId] + '/transit/routesForStop?id=' + routeId
             + '&agency=' + agencyId;
         util.fetchJSON(url, function(req) {
             if (req.response && req.response.routes) {
-                callback(req.response.routes);
+                success(req.response.routes);
+            } else if (failure) {
+                failure(req);
             } else {
                 console.debug(req);
             }
         });
     },
 
-    stopData: function(agencyId, routeId, callback) {
+    stopData: function(agencyId, routeId, success, failure) {
         var url = data.otpUrls[agencyId] + '/transit/stopData?id=' + routeId
             + '&agency=' + agencyId;
         util.fetchJSON(url, function(req) {
             if (req.response && req.response.stops[0]) {
-                callback(req.response.stops[0]);
+                success(req.response.stops[0]);
+            } else if (failure) {
+                failure(req);
             } else {
                 console.debug(req);
             }
         });
     },
 
-    stopsInExtent: function(agencyId, extent, projection, callback) {
+    stopsInExtent: function(agencyId, extent, projection, success, failure) {
         extent = ol.proj.transformExtent(extent, projection, 'EPSG:4326');
         var url = data.otpUrls[agencyId] + '/transit/stopsInRectangle?'
             + 'agency=' + agencyId
@@ -181,7 +186,9 @@ var data = {
             + '&rightDownLon=' + extent[2];
         util.fetchJSON(url, function(req) {
             if (req.response && req.response.stops) {
-                callback(req.response.stops);
+                success(req.response.stops);
+            } else if (failure) {
+                failure(req);
             } else {
                 console.debug(req);
             }
@@ -205,6 +212,7 @@ var data = {
         feature.set('direction', journey.DirectionRef.value);
         feature.set('line', lineInfo[1]);
         feature.set('lineRef', lineInfo[2]);
+        feature.set('routeType', lineInfo[0]);
 
         return true;
     },
