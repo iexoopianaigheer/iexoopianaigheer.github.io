@@ -69,6 +69,34 @@ var infoBox = {
         return infoBox.element;
     },
 
+    appendTimetableInfo: function(stopTimes) {
+        var times = dom.createChildNode(infoBox.getElement(), 'div', 'times');
+
+        stopTimes.stopTimes.forEach(function(stopTime) {
+            var phase = stopTime.phase;
+            if (phase && phase !== 'departure') {
+                return;
+            }
+
+            var date = new Date(stopTime.time * 1000);
+            var minutes = ('0' + date.getMinutes()).substr(-2);
+            var id = stopTime.trip.id.id;
+            var line = '';
+            switch (routa.config.agencyId) {
+                case 'HSL':
+                    line = data.interpretLineRef(id.substring(0, id.indexOf('_')))[1];
+                    break;
+            }
+
+            var row = dom.createChildNode(times, 'div', 'time-row');
+            dom.createChildNode(row, 'div', 'hours', date.getHours());
+            dom.createChildNode(row, 'div', 'minutes', minutes);
+            dom.createChildNode(row, 'div', 'line', line);
+            dom.createChildNode(row, 'div', 'destination', stopTime.direction);
+        });
+    },
+
+
     setVisible: function(visible) {
         var element = infoBox.getElement();
         if (visible) {
@@ -91,7 +119,7 @@ var infoBox = {
         return element;
     },
 
-    setInfo: function(info) {
+    setInfo: function(info, style) {
         var element = document.getElementById('info');
         while (element.lastChild) {
             element.removeChild(element.lastChild);
@@ -110,6 +138,50 @@ var infoBox = {
                 element.appendChild(e);
             }
         }
+
+        if (style) {
+            element.classList.remove(element.classList.item(0));
+            element.classList.add(style);
+        }
+    },
+
+    setRouteInfo: function(variant, shortName) {
+        console.debug(variant);
+        var heading = document.createElement('h1');
+        //var shortName = variant.route.shortName;
+        //heading.textContent = (shortName ? shortName + ': ' : '')
+        heading.textContent = shortName  + ': '
+            + variant.route.longName;
+        infoBox.setInfo(heading, 'line');
+    },
+
+    setStopInfo: function(feature, stopData) {
+        var routes = document.createElement('div');
+        routes.classList.add('routes');
+
+        stopData.sort().forEach(function(route) {
+            var e = document.createElement('div');
+            e.classList.add('route');
+
+            var shortName = document.createElement('div');
+            shortName.classList.add('short-name');
+            shortName.textContent = route.routeShortName;
+            e.appendChild(shortName);
+
+            var longName = document.createElement('div');
+            longName.classList.add('long-name');
+            longName.textContent = route.routeLongName;
+            e.appendChild(longName);
+
+            routes.appendChild(e);
+        });
+
+        var heading = document.createElement('h1');
+        var stopCode = feature.get('stopCode');
+        heading.textContent = feature.get('name')
+            + (stopCode ? ' (' + stopCode + ')' : '');
+
+        infoBox.setInfo([heading, routes], 'stop');
     },
 
 };

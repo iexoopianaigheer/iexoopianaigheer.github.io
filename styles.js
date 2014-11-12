@@ -55,24 +55,6 @@ var styles = {
             image: new ol.style.Circle({
                 radius: 9,
                 fill: new ol.style.Fill({
-                    color: styles.colors(feature.get('routeType'), 0.6),
-                }),
-                stroke: styles.vehicleMarkerStrokeStyle,
-            }),
-            text: new ol.style.Text({
-                font: '10px sans-serif medium',
-                text: feature.get('line'),
-                fill: styles.fillBlack,
-                stroke: styles.strokeWhite,
-            }),
-        })];
-    },
-
-    selectedVehicleFunction: function(feature, resolution) {
-        return [new ol.style.Style({
-            image: new ol.style.Circle({
-                radius: 10,
-                fill: new ol.style.Fill({
                     color: styles.colors(feature.get('routeType'), 1),
                 }),
                 stroke: styles.vehicleMarkerStrokeStyle,
@@ -86,7 +68,37 @@ var styles = {
         })];
     },
 
-    selectedRoute: function (type) {
+    selectedFeatureFunction: function(feature, resolution) {
+        switch (feature.get('type')) {
+            case 'stop':
+                return styles.selectedStops(feature.get('routeType'));
+            case 'vehicle':
+                return styles.selectedVehicleFunction(feature, resolution);
+        }
+    },
+
+    selectedVehicleFunction: function(feature, resolution) {
+        return [new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 10,
+                fill: new ol.style.Fill({
+                    color: '#dddddc',
+                }),
+                stroke: new ol.style.Stroke({
+                    color: styles.colors(feature.get('routeType'), 1),
+                    width: 3,
+                }),
+            }),
+            text: new ol.style.Text({
+                font: '11px sans-serif medium',
+                text: feature.get('line'),
+                fill: styles.fillBlack,
+                stroke: styles.strokeWhite,
+            }),
+        })];
+    },
+
+    selectedRoute: function(type) {
         return [new ol.style.Style({
             stroke: new ol.style.Stroke({
                 color: styles.colors(type, 1),
@@ -95,7 +107,7 @@ var styles = {
         })]
     },
 
-    selectedStops: function(type) {
+    selectedStops: function(routeType) {
         return [new ol.style.Style({
             image: new ol.style.Circle({
                 radius: 4,
@@ -108,7 +120,7 @@ var styles = {
     stopAtZoomLevel: [
         [new ol.style.Style({
             image: new ol.style.Circle({
-                radius: 3,
+                radius: 4,
                 fill: new ol.style.Fill({ color: 'rgba(200,200,200,0.8)' }),
                 stroke: new ol.style.Stroke({ color: '#000', width: 1.4 }),
             }),

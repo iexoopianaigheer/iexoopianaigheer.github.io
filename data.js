@@ -75,6 +75,7 @@ var data = {
         var lineRef = journey.LineRef.value;
         var vehicleRef = journey.VehicleRef.value;
         var feature = new ol.Feature({
+            agencyId: journey.OperatorRef.value,
             vehicleRef: vehicleRef,
             type: 'vehicle',
         });
@@ -190,6 +191,29 @@ var data = {
         util.fetchJSON(url, function(req) {
             if (req.response && req.response.stops) {
                 success(req.response.stops);
+            } else if (failure) {
+                failure(req);
+            } else {
+                console.debug(req);
+            }
+        });
+    },
+
+    stopTimesForStop: function(agencyId, stopId, success, failure) {
+        var startTime = +new Date();
+        var endTime = startTime + 24 * 60 * 60 * 1000;
+        if (agencyId === 'JOLI') {
+            startTime = ~~(startTime / 1000);
+            endTime = ~~(endTime / 1000);
+        }
+        var url = data.otpUrls[agencyId] + '/transit/stopTimesForStop?'
+            + '&agency=' + agencyId
+            + '&id=' + stopId
+            + '&startTime=' + startTime
+            + '&endTime=' + endTime;
+        util.fetchJSON(url, function(req) {
+            if (req.response) {
+                success(req.response);
             } else if (failure) {
                 failure(req);
             } else {

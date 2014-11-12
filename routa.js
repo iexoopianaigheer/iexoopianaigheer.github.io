@@ -58,7 +58,7 @@ function onVehicleSelect(feature, routeData) {
 
     map.fitExtent(map.sources.selection.getExtent());
 
-    infoBox.setInfo(JSON.stringify(routeData, null, 4));
+    infoBox.setRouteInfo(variant, feature.get('line'));
     infoBox.setVisible(true);
 }
 
@@ -107,7 +107,9 @@ function onStopSelect(feature, stopData) {
     });
 
     if (stopData) {
-        infoBox.setInfo(JSON.stringify(stopData, null, 4));
+        infoBox.setStopInfo(feature, stopData);
+        data.stopTimesForStop(feature.get('agencyId'), feature.get('localId'),
+            infoBox.appendTimetableInfo);
     } else {
         infoBox.setInfo('no info');
     }
@@ -193,7 +195,7 @@ function init(agencyId, coords) {
     data.pollSiri(agencyId, handleSiriData, 5 * 1000);
 
     var select = new ol.interaction.Select({
-        style: styles.selectedVehicleFunction,
+        style: styles.selectedFeatureFunction,
     });
     map.map.addInteraction(select);
 
@@ -207,7 +209,6 @@ function init(agencyId, coords) {
         var feature = ev.target.getFeatures().item(0);
         if (feature) {
             var type = feature.get('type');
-            var agency = feature.get('agency');
             if (type === 'vehicle') {
                 data.routeData(agencyId, feature.get('lineRef'), function(routeData) {
                     onVehicleSelect(feature, routeData);
@@ -227,7 +228,6 @@ function init(agencyId, coords) {
 window.addEventListener('load', function() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(pos) {
-            console.debug(pos);
             var coords = [pos.coords.longitude, pos.coords.latitude];
             var agencyId = getCityFromPosition(coords);
             if (agencyId) {

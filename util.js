@@ -44,16 +44,12 @@ var util = {
         req.open('GET', url, true);
         req.setRequestHeader('Accept', 'application/json');
         req.responseType = 'json';
-        req.onload = function(ev) {
-            if (!silent) {
-                loading.dec();
-            }
-            callback(req);
-        };
-        req.send();
+        req.onload = function(ev) { callback(req); };
         if (!silent) {
+            req.onloadend = function(ev) { loading.dec() };
             loading.inc();
         }
+        req.send();
     },
 
     geometryEquals: function(a, b) {
