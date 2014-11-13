@@ -14,8 +14,6 @@ body {
 #info {
     background-color: rgba(20, 20, 20, 0.5);
     border-radius: 2em;
-    left: 5%;
-    right: 5%;
     opacity: 0;
     position: absolute;
     visibility: hidden;
@@ -24,19 +22,25 @@ body {
 }
 
 #info.stop {
-    top: 5%;
-    bottom: 5%;
+    bottom: 2em;
+    left: 2em;
+    right: 2em;
+    top: 2em;
 }
 
 #info.line {
-    bottom: 5%;
+    bottom: 1em;
+    left: 1em;
+    right: 1em;
 }
 
 #info > * {
     font-family: Gotham Rounded,Verdana,Arial,sans-serif;
     color: white;
     margin: 5%;
-    //overflow: hidden;
+}
+
+h1 {
     word-break: break-word;
 }
 
@@ -112,6 +116,7 @@ body {
 .route > .long-name {
     display: table-cell;
     padding-left: 0.5em;
+    word-break: break-word;
 }
 
 .times {
@@ -139,4 +144,5 @@ body {
 .time-row > .destination {
     display: table-cell;
     padding-left: 0.5em;
+    word-break: break-word;
 }
