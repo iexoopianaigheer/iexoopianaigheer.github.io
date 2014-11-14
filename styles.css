@@ -34,14 +34,28 @@ body {
     right: 1em;
 }
 
-#info > * {
-    font-family: Gotham Rounded,Verdana,Arial,sans-serif;
+#content {
     color: white;
-    margin: 5%;
+    font-family: Gotham Rounded,Verdana,Arial,sans-serif;
+}
+
+#info.line > #content {
+    margin: 1em;
+    overflow: hidden;
+}
+
+#info.stop > #content {
+    position: absolute;
+    overflow-y: auto;
+    bottom: 2em;
+    left: 2em;
+    right: 0.5em;
+    top: 2em;
 }
 
 h1 {
     word-break: break-word;
+    margin: 0;
 }
 
 .city-select {
@@ -59,7 +73,7 @@ h1 {
     cursor: pointer;
     font-family: Gotham Rounded,Verdana,Arial,sans-serif;
     font-size: 150%;
-    margin: 5%;
+    margin: 1em;
     padding: 1em;
     position: relative;
     text-align: center;
@@ -106,6 +120,7 @@ h1 {
 
 .routes {
     display: table;
+    margin: 1em 0;
 }
 .routes > .route {
     display: table-row;

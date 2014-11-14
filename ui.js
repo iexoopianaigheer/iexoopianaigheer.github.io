@@ -62,15 +62,22 @@ var loading = {
 
 var infoBox = {
 
-    getElement: function() {
-        if (!infoBox.element) {
-            infoBox.element = document.getElementById('info');
+    getContainer: function() {
+        if (!infoBox.container) {
+            infoBox.container = document.getElementById('info');
         }
-        return infoBox.element;
+        return infoBox.container;
+    },
+
+    getContent: function() {
+        if (!infoBox.content) {
+            infoBox.content = document.getElementById('content');
+        }
+        return infoBox.content;
     },
 
     appendTimetableInfo: function(stopTimes) {
-        var times = dom.createChildNode(infoBox.getElement(), 'div', 'times');
+        var times = dom.createChildNode(infoBox.getContent(), 'div', 'times');
 
         stopTimes.stopTimes.forEach(function(stopTime) {
             var phase = stopTime.phase;
@@ -81,7 +88,7 @@ var infoBox = {
             var date = new Date(stopTime.time * 1000);
             var minutes = ('0' + date.getMinutes()).substr(-2);
             var id = stopTime.trip.id.id;
-            var line = '';
+            var line = undefined;
             switch (routa.config.agencyId) {
                 case 'HSL':
                     line = data.interpretLineRef(id.substring(0, id.indexOf('_')))[1];
@@ -91,14 +98,15 @@ var infoBox = {
             var row = dom.createChildNode(times, 'div', 'time-row');
             dom.createChildNode(row, 'div', 'hours', date.getHours());
             dom.createChildNode(row, 'div', 'minutes', minutes);
-            dom.createChildNode(row, 'div', 'line', line);
+            if (line !== undefined) {
+                dom.createChildNode(row, 'div', 'line', line);
+            }
             dom.createChildNode(row, 'div', 'destination', stopTime.direction);
         });
     },
 
-
     setVisible: function(visible) {
-        var element = infoBox.getElement();
+        var element = infoBox.getContainer();
         if (visible) {
             map.map.once('click', function(ev) {
                 infoBox.setVisible(false);
@@ -120,7 +128,7 @@ var infoBox = {
     },
 
     setInfo: function(info, style) {
-        var element = document.getElementById('info');
+        var element = infoBox.getContent();
         while (element.lastChild) {
             element.removeChild(element.lastChild);
         };
@@ -140,16 +148,21 @@ var infoBox = {
         }
 
         if (style) {
-            element.classList.remove(element.classList.item(0));
-            element.classList.add(style);
+            var container = infoBox.getContainer();
+            container.className = '';
+            if (style instanceof Array) {
+                style.forEach(function(cls) {
+                    container.classList.add(cls);
+                });
+            } else {
+                container.classList.add(style);
+            }
         }
     },
 
     setRouteInfo: function(variant, shortName) {
         console.debug(variant);
         var heading = document.createElement('h1');
-        //var shortName = variant.route.shortName;
-        //heading.textContent = (shortName ? shortName + ': ' : '')
         heading.textContent = shortName  + ': '
             + variant.route.longName;
         infoBox.setInfo(heading, 'line');
